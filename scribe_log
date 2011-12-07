@@ -4,6 +4,7 @@ import optparse
 import os
 import sys
 import time
+import fileinput
 from thrift.transport import TTransport
 from thrift.transport import TSocket
 from thrift.transport.TTransport import TTransportException
@@ -103,10 +104,13 @@ def handle(path, category, host='127.0.0.1', port=1463, prefix='', postfix=''):
     try:
         transport.open()
 
-        tail = Tail(path)
+        if path == '-':
+          stream = fileinput.input(path) 
+        else:
+          stream = Tail(path).open()
+        
         try:
-            tail.open()
-            for line in tail:
+            for line in stream:
                 try:
                     log_entry = scribe.LogEntry(
                         category=category,
@@ -120,7 +124,8 @@ def handle(path, category, host='127.0.0.1', port=1463, prefix='', postfix=''):
                     )
                 result = client.Log(messages=[log_entry])
         finally:
-            tail.close()
+            pass
+          #  tail.close()
     finally:
         try:
             transport.close()
@@ -138,6 +143,7 @@ if __name__ == '__main__':
     parser = optparse.OptionParser()
     parser.add_option(
         '--file',
+        default='-',
         dest='file',
         help='file to tail into Scribe',
         metavar='FILE',
