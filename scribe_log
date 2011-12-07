@@ -107,7 +107,8 @@ def handle(path, category, host='127.0.0.1', port=1463, prefix='', postfix=''):
         if path == '-':
           stream = fileinput.input(path) 
         else:
-          stream = Tail(path).open()
+          stream = Tail(path)
+          stream.open()
         
         try:
             for line in stream:
